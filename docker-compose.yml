@@ -1,0 +1,43 @@
+services:
+  db:  # MySQL database container
+    image: mysql:8
+    container_name: mysql_db
+    env_file:
+      - .env
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:  # Spring Boot backend container
+    build:
+      context: ./backend
+    container_name: spring_backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+    command: ./gradlew bootRun
+
+  web:  # Frontend dev server container
+    build:
+      context: ./web
+    container_name: web_frontend
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+      - db
+    volumes:
+      - ./web:/app
+      - web_node_modules:/app/node_modules
+
+volumes:
+  db_data:
+  web_node_modules:
